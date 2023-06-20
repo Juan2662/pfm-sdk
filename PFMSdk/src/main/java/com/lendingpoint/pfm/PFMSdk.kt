@@ -46,7 +46,7 @@ class PFMSdkActivity : Activity() {
         val partnerToken = intent.getStringExtra("partnerToken")
         val partnerURL = intent.getStringExtra("partnerURL")
         val userToken = intent.getStringExtra("userToken")
-        val url = "https://pfm-ten.vercel.app/?partnerURL=$partnerURL&partnerToken=$partnerToken&userToken=$userToken"
+        val url = "https://mfe-pfm.lendingpoint.com/pfm-dev?partnerURL=$partnerURL&partnerToken=$partnerToken" + if (!userToken.isNullOrEmpty()) "&userToken=$userToken" else ""
 
         val webViewSettings = webView.settings
         webViewSettings.javaScriptEnabled = true
