@@ -24,7 +24,7 @@ object PFMSdk {
         context.startActivity(intent)
     }
 
-    fun close() {
+    fun hide() {
         val context = contextRef?.get()
         if(context is Activity){
             context.finish()
