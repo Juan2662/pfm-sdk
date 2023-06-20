@@ -50,6 +50,7 @@ class PFMSdkActivity : Activity() {
 
         val webViewSettings = webView.settings
         webViewSettings.javaScriptEnabled = true
+        webView.clearCache(true)
         webView.webChromeClient = WebChromeClient()
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
