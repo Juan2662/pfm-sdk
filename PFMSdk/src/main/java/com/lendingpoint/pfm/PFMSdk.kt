@@ -15,12 +15,12 @@ import java.lang.ref.WeakReference
 object PFMSdk {
     private var contextRef: WeakReference<Context>? = null
 
-    fun open(context: Context, partnerToken: String, userToken: String? = null, partnerURL: String) {
+    fun show(context: Context, partnerURL: String, partnerToken: String, userToken: String? = null) {
         contextRef = WeakReference(context)
         val intent = Intent(context, PFMSdkActivity::class.java)
+        intent.putExtra("partnerURL", partnerURL)
         intent.putExtra("partnerToken", partnerToken)
         intent.putExtra("userToken", userToken)
-        intent.putExtra("partnerURL", partnerURL)
         context.startActivity(intent)
     }
 
