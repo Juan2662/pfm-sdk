@@ -1,5 +1,6 @@
 package com.lendingpoint.pfm
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -12,15 +13,27 @@ import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import java.lang.ref.WeakReference
 
+data class Body(
+    val partnerURL: String,
+    val partnerToken: String,
+    val userToken: String? = null,
+    val userUUID: String? = null
+)
 object PFMSdk {
     private var contextRef: WeakReference<Context>? = null
 
-    fun show(context: Context, partnerURL: String, partnerToken: String, userToken: String? = null) {
+    fun show(context: Context, body: Body) {
         contextRef = WeakReference(context)
         val intent = Intent(context, PFMSdkActivity::class.java)
-        intent.putExtra("partnerURL", partnerURL)
-        intent.putExtra("partnerToken", partnerToken)
-        intent.putExtra("userToken", userToken)
+
+        if (!body.partnerURL.startsWith("https://") && !body.partnerToken.isNullOrEmpty() ) {
+            return
+        }
+
+        intent.putExtra("partnerURL", body.partnerURL)
+        intent.putExtra("partnerToken", body.partnerToken)
+        intent.putExtra("userToken", body.userToken)
+        intent.putExtra("userUUID", body.userUUID)
         context.startActivity(intent)
     }
 
@@ -36,6 +49,7 @@ class PFMSdkActivity : Activity() {
     private lateinit var webView: WebView
     private lateinit var progressBar: ProgressBar
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.pfmsdk_layout)
@@ -46,7 +60,8 @@ class PFMSdkActivity : Activity() {
         val partnerToken = intent.getStringExtra("partnerToken")
         val partnerURL = intent.getStringExtra("partnerURL")
         val userToken = intent.getStringExtra("userToken")
-        val url = "https://mfe-pfm.lendingpoint.com/pfm-dev?partnerURL=$partnerURL&partnerToken=$partnerToken" + if (!userToken.isNullOrEmpty()) "&userToken=$userToken" else ""
+        val userUUID = intent.getStringExtra("userUUID")
+        val url = "$partnerURL?partnerToken=$partnerToken" + if (!userToken.isNullOrEmpty()) "&userToken=$userToken" else "" + if (!userUUID.isNullOrEmpty()) "&userUUID=$userUUID" else ""
 
         val webViewSettings = webView.settings
         webViewSettings.javaScriptEnabled = true
