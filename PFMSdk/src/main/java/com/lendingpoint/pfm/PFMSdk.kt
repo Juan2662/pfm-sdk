@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
@@ -105,6 +106,9 @@ class PFMSdkActivity : Activity() {
 
     @JavascriptInterface
     fun postMessage(message: String) {
+        if(message == "CLOSE_MODAL"){
+            PFMSdk.hide()
+        }
         PFMSdk.messageListener?.onMessageReceived(message)
     }
 
