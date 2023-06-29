@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -20,7 +21,16 @@ data class Body(
     val userUUID: String? = null
 )
 object PFMSdk {
-    private var contextRef: WeakReference<Context>? = null
+    private var contextRef          : WeakReference<Context>? = null
+    internal var messageListener    : MessageListener? = null
+
+    interface MessageListener {
+        fun onMessageReceived(message: String)
+    }
+
+    fun onMessageListener(listener: MessageListener) {
+        messageListener = listener
+    }
 
     fun show(context: Context, body: Body) {
         contextRef = WeakReference(context)
@@ -66,6 +76,7 @@ class PFMSdkActivity : Activity() {
         val webViewSettings = webView.settings
         webViewSettings.javaScriptEnabled = true
         webView.clearCache(true)
+        webView.addJavascriptInterface(this, "LendingPointAndroidSdk")
         webView.webChromeClient = WebChromeClient()
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -87,6 +98,11 @@ class PFMSdkActivity : Activity() {
         }else {
             finish()
         }
+    }
+
+    @JavascriptInterface
+    fun sendMessage(message: String) {
+        PFMSdk.messageListener?.onMessageReceived(message)
     }
 
 }
