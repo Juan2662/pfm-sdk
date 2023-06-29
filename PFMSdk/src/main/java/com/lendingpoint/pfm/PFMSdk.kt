@@ -12,6 +12,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ProgressBar
+import androidx.appcompat.app.AppCompatActivity
 import java.lang.ref.WeakReference
 
 data class Body(
@@ -40,10 +41,10 @@ object PFMSdk {
             return
         }
 
-        intent.putExtra("partnerURL", body.partnerURL)
+        intent.putExtra("partnerURL",   body.partnerURL)
         intent.putExtra("partnerToken", body.partnerToken)
-        intent.putExtra("userToken", body.userToken)
-        intent.putExtra("userUUID", body.userUUID)
+        intent.putExtra("userToken",    body.userToken)
+        intent.putExtra("userUUID",     body.userUUID)
         context.startActivity(intent)
     }
 
@@ -55,26 +56,27 @@ object PFMSdk {
     }
 }
 
-class PFMSdkActivity : Activity() {
-    private lateinit var webView: WebView
-    private lateinit var progressBar: ProgressBar
+class PFMSdkActivity : AppCompatActivity() {
+    private lateinit var webView        : WebView
+    private lateinit var progressBar    : ProgressBar
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.pfmsdk_layout)
 
-        webView = findViewById(R.id.webView)
         progressBar = findViewById(R.id.progressBar)
+        webView     = findViewById(R.id.webView)
 
-        val partnerToken = intent.getStringExtra("partnerToken")
-        val partnerURL = intent.getStringExtra("partnerURL")
-        val userToken = intent.getStringExtra("userToken")
-        val userUUID = intent.getStringExtra("userUUID")
-        val url = "$partnerURL?partnerToken=$partnerToken" + if (!userToken.isNullOrEmpty()) "&userToken=$userToken" else "" + if (!userUUID.isNullOrEmpty()) "&userUUID=$userUUID" else ""
+        val partnerToken    = intent.getStringExtra("partnerToken")
+        val partnerURL      = intent.getStringExtra("partnerURL")
+        val userToken       = intent.getStringExtra("userToken")
+        val userUUID        = intent.getStringExtra("userUUID")
+        val url             = "$partnerURL?partnerToken=$partnerToken" + if (!userToken.isNullOrEmpty()) "&userToken=$userToken" else "" + if (!userUUID.isNullOrEmpty()) "&userUUID=$userUUID" else ""
 
         val webViewSettings = webView.settings
         webViewSettings.javaScriptEnabled = true
+        webViewSettings.domStorageEnabled = true
         webView.clearCache(true)
         webView.addJavascriptInterface(this, "LendingPointAndroidSdk")
         webView.webChromeClient = WebChromeClient()
@@ -83,7 +85,6 @@ class PFMSdkActivity : Activity() {
                 progressBar.visibility = View.VISIBLE
                 super.onPageStarted(view, url, favicon)
             }
-
             override fun onPageFinished(view: WebView?, url: String?) {
                 progressBar.visibility = View.GONE
                 super.onPageFinished(view, url)
