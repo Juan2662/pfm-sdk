@@ -12,7 +12,6 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ProgressBar
-import androidx.appcompat.app.AppCompatActivity
 import java.lang.ref.WeakReference
 
 data class Body(
@@ -22,7 +21,7 @@ data class Body(
     val userUUID: String? = null
 )
 object PFMSdk {
-    private var contextRef          : WeakReference<Context>? = null
+    private var pfmActivity         : WeakReference<PFMSdkActivity>? = null
     internal var messageListener    : MessageListener? = null
 
     interface MessageListener {
@@ -33,10 +32,12 @@ object PFMSdk {
         messageListener = listener
     }
 
-    fun show(context: Context, body: Body) {
-        contextRef = WeakReference(context)
-        val intent = Intent(context, PFMSdkActivity::class.java)
+    internal fun setPFMActivity(activity: PFMSdkActivity){
+        pfmActivity = WeakReference(activity)
+    }
 
+    fun show(context: Context, body: Body) {
+        val intent = Intent(context, PFMSdkActivity::class.java)
         if (!body.partnerURL.startsWith("https://") && !body.partnerToken.isNullOrEmpty() ) {
             return
         }
@@ -49,24 +50,25 @@ object PFMSdk {
     }
 
     fun hide() {
-        val context = contextRef?.get()
-        if(context is Activity){
+        val context = pfmActivity?.get()
+        if(context is PFMSdkActivity){
             context.finish()
         }
     }
 }
 
-class PFMSdkActivity : AppCompatActivity() {
+class PFMSdkActivity : Activity() {
     private lateinit var webView        : WebView
-    private lateinit var progressBar    : ProgressBar
+    private var progressBar             : ProgressBar? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.pfmsdk_layout)
+        PFMSdk.setPFMActivity(this)
 
-        progressBar = findViewById(R.id.progressBar)
         webView     = findViewById(R.id.webView)
+        progressBar = findViewById(R.id.progressBar)
 
         val partnerToken    = intent.getStringExtra("partnerToken")
         val partnerURL      = intent.getStringExtra("partnerURL")
@@ -82,11 +84,11 @@ class PFMSdkActivity : AppCompatActivity() {
         webView.webChromeClient = WebChromeClient()
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                progressBar.visibility = View.VISIBLE
+                progressBar?.visibility = View.VISIBLE
                 super.onPageStarted(view, url, favicon)
             }
             override fun onPageFinished(view: WebView?, url: String?) {
-                progressBar.visibility = View.GONE
+                progressBar?.visibility = View.GONE
                 super.onPageFinished(view, url)
             }
         }
@@ -102,7 +104,7 @@ class PFMSdkActivity : AppCompatActivity() {
     }
 
     @JavascriptInterface
-    fun sendMessage(message: String) {
+    fun postMessage(message: String) {
         PFMSdk.messageListener?.onMessageReceived(message)
     }
 
